@@ -9,6 +9,7 @@ class MealsORM(Base):
     meal_id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(35))
     description: Mapped[str | None]
+    price: Mapped[int]
 
     orders: Mapped[list["OrderORM"]] = relationship( # type: ignore
         back_populates="meals", secondary="orders_and_meals"
