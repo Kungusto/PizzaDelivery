@@ -9,7 +9,7 @@ from aiogram import Router, F
 from src.utils.db_session import get_db
 from src.schemas.meals import Meal
 from src.models import *
-from src.api.buttons import buttons_menu, buttons_choise, buttons_bucket
+from src.api.buttons import buttons_menu, buttons_choise, buttons_bucket, buttons_choise_bucket
 
 
 router = Router()
@@ -43,7 +43,7 @@ async def greeting(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("meal-"))
 async def choise_meal(callback: CallbackQuery, state: FSMContext): 
     index = int(callback.data.split("-")[-1])
-    meals: dict = (await state.get_data())["meals"]
+    meals: list = (await state.get_data())["meals"]
     choiced_meal = meals[index]
     text = f"{choiced_meal.title} - {choiced_meal.price}₽\n\t\t{choiced_meal.description}"
     buttons = buttons_choise(index=index)
@@ -55,16 +55,21 @@ async def choise_meal(callback: CallbackQuery, state: FSMContext):
 async def choise(callback: CallbackQuery, state: FSMContext): 
     data = await state.get_data()
     index = int(callback.data.split("-")[-1])
-
-    
+    bucket: list = (await state.get_data())["bucket"]
+    choiced_meal = bucket[index]
+    text = f"{choiced_meal.title} - {choiced_meal.price}₽\n\t\t{choiced_meal.description}"
+    await state.update_data({"current_meal_index":index})
+    await callback.message.edit_text(text=text, reply_markup=buttons_choise_bucket())
 
 
 @router.callback_query(F.data == "cancel")
 async def cancel(callback: CallbackQuery, state: FSMContext): 
-    meals = (await state.get_data())["meals"]
-    buttons = buttons_menu(meals)
+    data = await state.get_data()
+    meals = data["meals"]
+    bucket = data["bucket"]
+    buttons = buttons_menu(data=meals, bucket=bucket)
     await callback.message.edit_text(
-        text="Выберите интерисующую вас пиццу 👇",
+        text="Выберите интересующую вас пиццу 👇",
         reply_markup=buttons
     )
 
@@ -72,14 +77,14 @@ async def cancel(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "add")
 async def add(callback: CallbackQuery, state: FSMContext): 
     data = await state.get_data()
+    meals = data["meals"]
     meal_now = data["meal_now"]
     bucket = data["bucket"]
-    meals = data["meals"]
     bucket.append(meal_now)
     await state.update_data({"bucket": bucket})
-    buttons = buttons_menu(meals)
+    buttons = buttons_menu(data=meals, bucket=bucket)
     await callback.message.edit_text(
-        text="Выберите интерисующую вас пиццу 👇",
+        text="Выберите интересующую вас пиццу 👇",
         reply_markup=buttons
     )
 
@@ -91,5 +96,31 @@ async def bucket(callback: CallbackQuery, state: FSMContext):
     buttons = buttons_bucket(bucket)
     await callback.message.edit_text(
         text="Ваша текущая корзина",
+        reply_markup=buttons
+    )
+
+
+@router.callback_query(F.data == "delete-bucket")
+async def bucket_delete(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    bucket = data["bucket"]
+    index = data["current_meal_index"]
+    bucket.pop(index)
+    await state.update_data({"bucket": bucket})
+    buttons = buttons_bucket(bucket)
+    await callback.message.edit_text(
+        text="Ваша текущая корзина",
+        reply_markup=buttons
+    )
+    
+
+@router.callback_query(F.data == "menu")
+async def menu(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    meals = data["meals"]
+    bucket = data["bucket"]
+    buttons = buttons_menu(data=meals, bucket=bucket)
+    await callback.message.edit_text(
+        text="Выберите интересующую вас пиццу 👇",
         reply_markup=buttons
     )
