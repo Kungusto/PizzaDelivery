@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from src.schemas.meals import Meal
 
 class Order(BaseModel):
-    order_id: int
+    chat_id: int
     user_id: str
 
 

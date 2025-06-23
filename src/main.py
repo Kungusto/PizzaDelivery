@@ -21,7 +21,7 @@ bot = Bot(token=token)
 dp = Dispatcher()
 
 async def main():
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, skip_updates=False)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

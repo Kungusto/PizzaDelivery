@@ -10,7 +10,8 @@ from src.utils.db_session import get_db
 from src.schemas.meals import Meal
 from src.models import *
 from src.api.buttons import buttons_menu, buttons_choise, buttons_bucket, buttons_choise_bucket
-
+from src.utils.payment import create
+from src.utils.order_helpers import total_cost
 
 router = Router()
 
@@ -46,7 +47,7 @@ async def choise_meal(callback: CallbackQuery, state: FSMContext):
     meals: list = (await state.get_data())["meals"]
     choiced_meal = meals[index]
     text = f"{choiced_meal.title} - {choiced_meal.price}₽\n\t\t{choiced_meal.description}"
-    buttons = buttons_choise(index=index)
+    buttons = buttons_choise()
     await state.update_data({"meal_now":choiced_meal})
     await callback.message.edit_text(text=text, reply_markup=buttons)
 
@@ -124,3 +125,13 @@ async def menu(callback: CallbackQuery, state: FSMContext):
         text="Выберите интересующую вас пиццу 👇",
         reply_markup=buttons
     )
+
+
+@router.callback_query(F.data == "complete-order")
+async def complete_order(callback: CallbackQuery, state: FSMContext, message: Message): 
+    data = await state.get_data()
+    bucket = data["bucket"]
+    amount = total_cost(bucket)
+    chat_id = callback.message.chat.id
+    url, payment_id = create(chat_id=chat_id, amount=amount, description="Заказ лучшей пиццы в городе! 🍕")
+    await message.answer(f"С вас {amount}₽. Оплатить можно тут: {url}")

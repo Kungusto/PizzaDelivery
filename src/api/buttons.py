@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from src.schemas.meals import Meal
-
+from src.utils.order_helpers import total_cost
 
 def buttons_menu(data: list[Meal], bucket: list[Meal] = []) -> InlineKeyboardMarkup:
     if bucket:
@@ -15,7 +15,7 @@ def buttons_menu(data: list[Meal], bucket: list[Meal] = []) -> InlineKeyboardMar
 
 
 
-def buttons_choise(index: int) -> InlineKeyboardMarkup: 
+def buttons_choise() -> InlineKeyboardMarkup: 
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="➕ Добавить в корзину", callback_data="add")],
@@ -24,11 +24,12 @@ def buttons_choise(index: int) -> InlineKeyboardMarkup:
     )
 
 def buttons_bucket(data: list[Meal]) -> InlineKeyboardMarkup:
+    total_cost = total_cost(data)
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text=meal.title, callback_data=f"bucket-{index}")] 
+            [InlineKeyboardButton(text=f"{meal.title} ({meal.price}₽)", callback_data=f"bucket-{index}")] 
             for index, meal in enumerate(data)
-        ] + [[InlineKeyboardButton(text="📋 К меню", callback_data="menu")]] + [[InlineKeyboardButton(text="✅ Оформить заказ", callback_data="complete-bucket")]]
+        ] + [[InlineKeyboardButton(text="📋 К меню", callback_data="menu")]] + [[InlineKeyboardButton(text=f"✅ Оформить заказ ({total_cost}₽)", callback_data="complete-order")]]
     )
 
 

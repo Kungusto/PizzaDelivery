@@ -16,6 +16,10 @@ class Settings(BaseSettings):
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     API_TOKEN_TG: str
+    BOT_USERNAME: str
+
+    YOOKASSA_ACCOUNT_ID: str
+    YOOKASSA_SECRET_KEY: str
     
     model_config = SettingsConfigDict(env_file=".env")
 

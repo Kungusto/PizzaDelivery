@@ -15,7 +15,10 @@ class OrderORM(Base):
     __tablename__ = "orders"
 
     order_id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[str]
+    chat_id: Mapped[str]
+    payment_id: Mapped[str]
+    is_paid: Mapped[bool]
+
 
     meals: Mapped[list["MealsORM"]] = relationship( # type: ignore
         secondary="orders_and_meals",
